@@ -1,7 +1,8 @@
 # Pagination
 كلاس تعدد الصفحات 
 
-<?php
+
+```php
 /**
  * -----------------------------------
  * File  : index.php
@@ -27,4 +28,4 @@ foreach ($showing as $item) {
 }
 
 echo $Pagination->getPages();
-؟>
+```
