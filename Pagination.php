@@ -9,7 +9,7 @@
  */
 
 
-namespace Pagination;
+namespace ArPHP\Pagination;
 
 class Pagination
 {
@@ -35,6 +35,7 @@ class Pagination
     protected $ceil;
     protected $start;
     protected $end;
+    protected $json = [];
     /**
      * Pagination constructor.
      * @param $count
@@ -54,7 +55,6 @@ class Pagination
         $this->page_limit = (int)$page_limit;
         $this->setSetting();
     }
-
     /**
      * set linke title
      * @param $title
@@ -120,6 +120,7 @@ class Pagination
      *
      */
     protected function setSetting(){
+        if($this->limit === false || $this->limit === 0) return;
         $this->page = ((int)$this->page == false ? 1 : (int)$this->page);
         $this->offset = (($this->page - 1) * $this->limit);
         $ceil = ceil($this->count / $this->limit);
@@ -149,24 +150,49 @@ class Pagination
 //------------------------------------------------------------------------
     protected function run()
     {
+        if($this->limit === false || $this->limit === 0) return;
         $this->pages = '<ul class="Pagination">';
         if ($this->page > 1 && $this->ceil > $this->page) {
             $this->pages .= '<li><a href="' . $this->changePageUrl(($this->page + 1)) . '" class="page_next ' . $this->class_name . '  " title="'.$this->title.' '.($this->page + 1).'" alt="'.$this->title.' '.($this->page + 1).'">'.(!empty($this->next)?$this->next:'&nbsp;').'</a></li>';
+            $this->json[] = [
+                'text' => 'next',
+                'href' => $this->changePageUrl(($this->page + 1))
+            ];
         }
         if ($this->page > 1 && $this->page > ($this->page_limit - 1) && $this->ceil >= $this->page) {
             $this->pages .= '<li><a href="' . $this->changePageUrl(1) . '"  class="' . $this->class_name . '"  title="'.$this->title.' 1" alt="'.$this->title.' 1">1</a> </li>';
+            $this->json[] = [
+                'text' =>  1,
+                'href' => $this->changePageUrl( 1)
+            ];
         }
         for ($i = $this->start; $i <= $this->end; $i++) {
             if ($this->page == $i) {
                 $this->pages .= '<li class="active"><span  class="page_active">' . $i . '</span> </li>';
+                $this->json[] = [
+                    'text' =>  $i,
+                    'href' => null
+                ];
             } else {
+                $this->json[] = [
+                    'text' =>  $i,
+                    'href' => $this->changePageUrl( $i)
+                ];
                 $this->pages .= '<li><a href="' . $this->changePageUrl($i) . '"  class="' . $this->class_name . '"  title="'.$this->title.' '.$i.'" alt="'.$this->title.' '.$i.'">' . $i . '</a>  </li>';
             }
         }
         if ($this->page > 1) {
             $this->pages .= '<li><a href="' . $this->changePageUrl(($this->page - 1)) . '"  class="' . $this->class_name . ' page_back"  title="'.$this->title.' '.($this->page - 1).'" alt="'.$this->title.' '.($this->page - 1).'">'.(!empty($this->back)?$this->back:'&nbsp;').'</a></li>';
+            $this->json[] = [
+                'text' =>  'back',
+                'href' => $this->changePageUrl( ($this->page - 1))
+            ];
         }
         if ($this->ceil > $this->end) {
+            $this->json[] = [
+                'text' =>  'last',
+                'href' => $this->changePageUrl( $this->ceil)
+            ];
             $this->pages .= '<li><a href="' . $this->changePageUrl($this->ceil) . '"  class="page_last ' . $this->class_name . ' "  title="'.$this->title.' '.($this->ceil).'" alt="'.$this->title.' '.($this->ceil).'">'.(!empty($this->last)?$this->last:'&nbsp;').'</a></li>';
         }
         $this->pages .= '</ul>';
@@ -190,9 +216,14 @@ class Pagination
         return $this->pages;
     }
 
+    public final function getArray(){
+        $this->run();
+        return $this->json;
+    }
 //------------------------------------------------------------------------
     public function getOffset()
     {
+        if($this->limit === false || $this->limit === 0) return false;
         if($this->count == $this->ceil && $this->limit == $this->count){
             return 0;
         }
